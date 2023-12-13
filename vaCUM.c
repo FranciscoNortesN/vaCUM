@@ -6,19 +6,50 @@
 #include <limits.h>
 #include <stdbool.h>
 
+//constantes
 #define filas 6
 #define columnas 6
 #define condicion 1 //acabar el mapa
 #define bateria_max 1000000000 //para que sobre bateria
 #define p -1 //pared
-#define arriba 0
-#define derecha 1
-#define abajo 2
-#define izquierda 3
 
-typedef double db;
+//direcciones
+#define arriba 0
+#define esquina_arriba_derecha 1
+#define derecha 2
+#define esquina_abajo_derecha 3
+#define abajo 4
+#define esquina_abajo_izquierda 5
+#define izquierda 6
+#define esquina_arriba_izquierda 7
+/*si la posicion del robot es x, con lo que viene ahora representamos las posiciones relativas a x
+701
+6x2
+543
+*/
+
+//macros
+#define giro(direccion,atascado) direccion++; if (direccion==8) direccion=0; atascado++;//gira a la derecha 45 grados y suma 1 al contador de atascado (si llega a 8 es que esta atascado)
+/*
+	se puede poner de esta forma:
+	if (*direccion==arriba) *direccion=esquina_arriba_derecha;
+	else if (*direccion==esquina_arriba_derecha) *direccion=derecha;
+	else if (*direccion==derecha) *direccion=esquina_abajo_derecha;
+	else if (*direccion==esquina_abajo_derecha) *direccion=abajo;
+	else if (*direccion==abajo) *direccion=esquina_abajo_izquierda;
+	else if (*direccion==esquina_abajo_izquierda) *direccion=izquierda;
+	else if (*direccion==izquierda) *direccion=esquina_arriba_izquierda;
+	else if (*direccion==esquina_arriba_izquierda) *direccion=arriba;
+*/
+#define printf_pos_map printf("x%d, y%d, %lld\n", pos.x, pos.y, mapa_principal[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla del mapa principal
+//esta macro está, porque la vamos a usar mucho y es mas facil de escribir
+#define printf_pos_pan printf("x%d, y%d, %d\n", pos.x, pos.y, miguitas_de_pan[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla de las miguitas de pan
+//lo mismo que la anterior macro pero con las miguitas de pan
+
+
 typedef long long ll;
 typedef float f;
+typedef double db;
 typedef char c;
 
 typedef struct {
@@ -35,17 +66,22 @@ void imprimirTablero(int tablero[filas][columnas]) {//imprime el tablero
     }
 }
 
-void giro(ll *direccion,ll *atascado){//gira a la derecha
-	if (*direccion==arriba) *direccion=derecha;
-	else if (*direccion==derecha) *direccion=abajo;
-	else if (*direccion==abajo) *direccion=izquierda;
-	else if (*direccion==izquierda) *direccion=arriba;
-	*atascado++;
-}//direccion++; if (direccion==4) direccion=0;
+// Función para verificar si una posición está dentro de los límites del tablero
+bool dentroDeLimites(int x, int y) {
+    return (x >= 0 && x < filas && y >= 0 && y < columnas);
+}
+
+void limpiar_basura (ll mapa_principal[filas][columnas],Posicion pos/*,ll miguitas_de_pan[filas][columnas]*/){
+	while(mapa_principal[pos.x][pos.y]>0){
+		mapa_principal[pos.x][pos.y]--;
+		printf_pos_map;
+	}
+}
+
 
 int main(int argc, char *argv[])
 {
-	ll mapa_principal [filas][columnas]={{p,p,p,p,p,p},
+	int mapa_principal [filas][columnas]={{p,p,p,p,p,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
@@ -53,7 +89,7 @@ int main(int argc, char *argv[])
 	{p,p,p,p,p,p}};
 	//mapa que te dan
 
-	ll miguitas_de_pan [filas][columnas]={{p,p,p,p,p,p},
+	int miguitas_de_pan [filas][columnas]={{p,p,p,p,p,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
@@ -71,8 +107,8 @@ int main(int argc, char *argv[])
 	Posicion pos;//coordenadas del robot
 	ll bateria=bateria_max;//bateria del robot
 	ll hx=pos.x,hy=pos.y;//nos guardamos la base de carga
-	ll direccion=0;//0 derecha, 1 abajo, 2 izquierda, 3 arriba
-	ll atascado=0;//si llega a 4 es que esta atascado
+	ll direccion=0;//0 arriba, 1 esquina_arriba_derecha, 2 derecha, 3 esquina_abajo_derecha, 4 abajo, 5 esquina_abajo_izquierda, 6 izquierda, 7 esquina_arriba_izquierda
+	ll atascado=0;//si llega a 8 es que esta atascado
 	miguitas_de_pan[pos.x][pos.y]='1';//por aqui ya ha pasado
 
 	while (atascado<4&&bateria>0){
@@ -90,7 +126,7 @@ int main(int argc, char *argv[])
 				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
 				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
 				}
-				giro(&direccion,&atascado);//si no puede avanzar gira
+				giro(direccion,atascado);//si no puede avanzar gira
 			} 
 
 		}
@@ -108,7 +144,7 @@ int main(int argc, char *argv[])
 				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
 				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
 				}
-				giro(&direccion,&atascado);//si no puede avanzar gira
+				giro(direccion,atascado);//si no puede avanzar gira
 			} 
 		}
 		
@@ -125,7 +161,7 @@ int main(int argc, char *argv[])
 				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
 				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
 				}
-				giro(&direccion,&atascado);//si no puede avanzar gira
+				giro(direccion,atascado);//si no puede avanzar gira
 			} 
 		}
 		
@@ -142,7 +178,7 @@ int main(int argc, char *argv[])
 				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
 				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
 				}
-				giro(&direccion,&atascado);//si no puede avanzar gira
+				giro(direccion,atascado);//si no puede avanzar gira
 			} 
 		}
 

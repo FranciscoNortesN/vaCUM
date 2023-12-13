@@ -29,7 +29,7 @@
 */
 
 //macros
-#define giro(direccion,atascado) direccion++; if (direccion==8) direccion=0; atascado++;//gira a la derecha 45 grados y suma 1 al contador de atascado (si llega a 8 es que esta atascado)
+#define giro direccion++; if (direccion==8) direccion=0; atascado++;//gira a la derecha 45 grados y suma 1 al contador de atascado (si llega a 8 es que esta atascado)
 /*
 	se puede poner de esta forma:
 	if (*direccion==arriba) *direccion=esquina_arriba_derecha;
@@ -41,9 +41,9 @@
 	else if (*direccion==izquierda) *direccion=esquina_arriba_izquierda;
 	else if (*direccion==esquina_arriba_izquierda) *direccion=arriba;
 */
-#define printf_pos_map printf("x%d, y%d, %d\n", pos.x, pos.y, mapa_principal[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla del mapa principal
+#define printf_pos_map printf("x%d, y%d, %lld\n", pos.x, pos.y, (long long int)mapa_principal[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla del mapa principal
 //esta macro está, porque la vamos a usar mucho y es mas facil de escribir
-#define printf_pos_pan printf("x%d, y%d, %d\n", pos.x, pos.y, miguitas_de_pan[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla de las miguitas de pan
+#define printf_pos_pan printf("x%d, y%d, %lld\n", pos.x, pos.y, (long long int)miguitas_de_pan[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla de las miguitas de pan
 //lo mismo que la anterior macro pero con las miguitas de pan
 
 
@@ -71,7 +71,7 @@ bool dentroDeLimites(int x, int y) {
     return (x >= 0 && x < filas && y >= 0 && y < columnas);
 }
 
-void limpiar_basura (ll mapa_principal[filas][columnas],Posicion pos/*,ll miguitas_de_pan[filas][columnas]*/){
+void limpiar_basura (int mapa_principal[filas][columnas],Posicion pos/*,ll miguitas_de_pan[filas][columnas]*/){
 	while(mapa_principal[pos.x][pos.y]>0){
 		mapa_principal[pos.x][pos.y]--;
 		printf_pos_map;
@@ -81,7 +81,7 @@ void limpiar_basura (ll mapa_principal[filas][columnas],Posicion pos/*,ll miguit
 
 int main(int argc, char *argv[])
 {
-	ll mapa_principal [filas][columnas]={{p,p,p,p,p,p},
+	int mapa_principal [filas][columnas]={{p,p,p,p,p,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	{p,p,p,p,p,p}};
 	//mapa que te dan
 
-	ll miguitas_de_pan [filas][columnas]={{p,p,p,p,p,p},
+	int miguitas_de_pan [filas][columnas]={{p,p,p,p,p,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
 	{p,0,0,0,0,p},
@@ -104,89 +104,87 @@ int main(int argc, char *argv[])
 		}
 	}*/
 
-	Posicion pos;//coordenadas del robot
+	Posicion pos={1,1};//coordenadas del robot
 	ll bateria=bateria_max;//bateria del robot
 	ll hx=pos.x,hy=pos.y;//nos guardamos la base de carga
 	ll direccion=0;//0 arriba, 1 esquina_arriba_derecha, 2 derecha, 3 esquina_abajo_derecha, 4 abajo, 5 esquina_abajo_izquierda, 6 izquierda, 7 esquina_arriba_izquierda
 	ll atascado=0;//si llega a 8 es que esta atascado
 	miguitas_de_pan[pos.x][pos.y]='1';//por aqui ya ha pasado
 
-	while (atascado<4&&bateria>0){
+	int dx,dy;//para guardar las posiciones relativas a x
 
-		
-		if(direccion==arriba){//si esta mirando a la derecha
-			if (mapa_principal[pos.x+1][pos.y]!=p && bateria>=bateria_max/2+1 && miguitas_de_pan[pos.x+1][pos.y]!='1'){//si no hay pared, si tiene bateria y si no ha pasado por ahi
-				mapa_principal[pos.x][pos.y]='0';//recoge basura haiga o no haiga
-				miguitas_de_pan[pos.x+1][pos.y]='1';//por aqui ya ha pasado
-				pos.x++;//se mueve
-				bateria--;//gasta bateria
-				atascado=0;//resetea el contador de atascado
-			}
-			else{
-				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
-				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
-				}
-				giro(direccion,atascado);//si no puede avanzar gira
-			} 
-
+	while(atascado<=8&&bateria>bateria_max/2+1){
+		dx=0;
+		dy=0;
+		int tx[8]={0,1,1,1,0,-1,-1,-1},ty[8]={1,1,0,-1,-1,-1,0,1};
+		dx=tx[direccion];
+		dy=ty[direccion];
+		if (mapa_principal[pos.x+dx][pos.y+dy]!=p && miguitas_de_pan[pos.x+dx][pos.y+dy]!=1){//si no hay pared, si tiene bateria y si no ha pasado por ahi
+			limpiar_basura(mapa_principal,pos);
+			miguitas_de_pan[pos.x+dx][pos.y+dy]=1;//por aqui ya ha pasado
+			pos.x+=dx;//se mueve
+			pos.y+=dy;
+			bateria--;//gasta bateria
+			atascado=0;//resetea el contador de atascado
 		}
-		
-		
-		if(direccion==derecha){//si esta mirando abajo
-			if (mapa_principal[pos.x][pos.y+1]!=p&&bateria>=bateria_max/2+1){//si no hay pared, si tiene bateria y si no ha pasado por ahi
-				mapa_principal[pos.x][pos.y]='0';//recoge basura haiga o no haiga
-				miguitas_de_pan[pos.x][pos.y+1]='1';//por aqui ya ha pasado
-				pos.y++;//se mueve
-				bateria--;//gasta bateria
-				atascado=0;//resetea el contador de atascado
+		else{
+			if(mapa_principal[pos.x+dx][pos.y+dy]==p){//si hay pared
+				miguitas_de_pan[pos.x+dx][pos.y+dy]=p;//nos guardamos que hay una pared
 			}
-			else {
-				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
-				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
-				}
-				giro(direccion,atascado);//si no puede avanzar gira
-			} 
+			giro;//si no puede avanzar gira
 		}
-		
-		
-		if(direccion==abajo){//si esta mirando a la izquierda
-			if (mapa_principal[pos.x-1][pos.y]!=p&&bateria>=bateria_max/2+1){//si no hay pared, si tiene bateria y si no ha pasado por ahi
-				mapa_principal[pos.x][pos.y]='0';//recoge basura haiga o no haiga
-				miguitas_de_pan[pos.x-1][pos.y]='1';//por aqui ya ha pasado
-				pos.x--;//se mueve
-				bateria--;//gasta bateria
-				atascado=0;//resetea el contador de atascado
-			}
-			else {
-				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
-				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
-				}
-				giro(direccion,atascado);//si no puede avanzar gira
-			} 
+		/*if(direccion==arriba){
+			dx=0;
+			dy=1;
 		}
-		
-		
-		if(direccion==izquierda){//si esta mirando arriba
-			if (mapa_principal[pos.x][pos.y-1]!=p&&bateria>=bateria_max/2+1){//si no hay pared, si tiene bateria y si no ha pasado por ahi
-				mapa_principal[pos.x][pos.y]='0';//recoge basura haiga o no haiga
-				miguitas_de_pan[pos.x][pos.y-1]='1';//por aqui ya ha pasado
-				pos.y--;//se mueve
-				bateria--;//gasta bateria
-				atascado=0;//resetea el contador de atascado
-			}
-			else {
-				if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
-				miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
-				}
-				giro(direccion,atascado);//si no puede avanzar gira
-			} 
+		else if(direccion==esquina_arriba_derecha){
+			dx=1;
+			dy=1;
 		}
-
+		else if(direccion==derecha){
+			dx=1;
+			dy=0;
+		}
+		else if(direccion==esquina_abajo_derecha){
+			dx=1;
+			dy=-1;
+		}
+		else if(direccion==abajo){
+			dx=0;
+			dy=-1;
+		}
+		else if(direccion==esquina_abajo_izquierda){
+			dx=-1;
+			dy=-1;
+		}
+		else if(direccion==izquierda){
+			dx=-1;
+			dy=0;
+		}
+		else if(direccion==esquina_arriba_izquierda){
+			dx=-1;
+			dy=1;
+		}*/
 	}
 
+	/*if(direccion==arriba){//si esta mirando a la derecha
+		if (mapa_principal[pos.x+1][pos.y]!=p && bateria>=bateria_max/2+1 && miguitas_de_pan[pos.x+1][pos.y]!='1'){//si no hay pared, si tiene bateria y si no ha pasado por ahi
+			mapa_principal[pos.x][pos.y]='0';//recoge basura haiga o no haiga
+			miguitas_de_pan[pos.x+1][pos.y]='1';//por aqui ya ha pasado
+			pos.x++;//se mueve
+			bateria--;//gasta bateria
+			atascado=0;//resetea el contador de atascado
+		}
+		else{
+			if(mapa_principal[pos.x+1][pos.y]==p){//si hay pared
+			miguitas_de_pan[pos.x+1][pos.y]=p;//nos guardamos que hay una pared
+			}
+			giro(direccion,atascado);//si no puede avanzar gira
+		} 
+	}*/
 
 	imprimirTablero(mapa_principal);
-
+	imprimirTablero(miguitas_de_pan);
 
 
 

@@ -13,15 +13,17 @@
 #define bateria_max 1000000000 //para que sobre bateria
 #define p -1 //pared
 
-//direcciones
-#define arriba 0
-#define esquina_arriba_derecha 1
-#define derecha 2
-#define esquina_abajo_derecha 3
-#define abajo 4
-#define esquina_abajo_izquierda 5
-#define izquierda 6
-#define esquina_arriba_izquierda 7
+
+enum direcciones {
+	arriba,
+	esquina_arriba_derecha,
+	derecha,
+	esquina_abajo_derecha,
+	abajo,
+	esquina_abajo_izquierda,
+	izquierda,
+	esquina_arriba_izquierda
+};
 /*si la posicion del robot es x, con lo que viene ahora representamos las posiciones relativas a x
 701
 6x2
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
 	Posicion pos={1,1};//coordenadas del robot
 	ll bateria=bateria_max;//bateria del robot
 	ll hx=pos.x,hy=pos.y;//nos guardamos la base de carga
-	ll direccion=0;//0 arriba, 1 esquina_arriba_derecha, 2 derecha, 3 esquina_abajo_derecha, 4 abajo, 5 esquina_abajo_izquierda, 6 izquierda, 7 esquina_arriba_izquierda
+	enum direcciones direccion=0;//0 arriba, 1 esquina_arriba_derecha, 2 derecha, 3 esquina_abajo_derecha, 4 abajo, 5 esquina_abajo_izquierda, 6 izquierda, 7 esquina_arriba_izquierda
 	ll atascado=0;//si llega a 8 es que esta atascado
 	miguitas_de_pan[pos.x][pos.y]='1';//por aqui ya ha pasado
 

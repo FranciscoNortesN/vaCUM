@@ -86,6 +86,11 @@ void desatasco (int mapa_principal[filas][columnas],Posicion *pos,int miguitas_d
 		int tx[8]={0,1,1,1,0,-1,-1,-1},ty[8]={1,1,0,-1,-1,-1,0,1};
 		int dx=tx[*direccion];
 		int dy=ty[*direccion];
+		if(mapa_principal[pos->x+tx[visitado(miguitas_de_pan,*pos)]][pos->y+ty[visitado(miguitas_de_pan,*pos)]]==p){
+			printf("x%d, y%d, %lld\n", pos->x+tx[visitado(miguitas_de_pan,*pos)], pos->y+ty[visitado(miguitas_de_pan,*pos)], (long long int)mapa_principal[pos->x+tx[visitado(miguitas_de_pan,*pos)]][pos->y+ty[visitado(miguitas_de_pan,*pos)]]);
+			miguitas_de_pan[pos->x+tx[visitado(miguitas_de_pan,*pos)]][pos->y+ty[visitado(miguitas_de_pan,*pos)]]=p;
+			*casillas_por_recorrer--;
+		}
 		if(visitado(miguitas_de_pan,*pos)!=-1){
 			*atascado=0;
 			dx=tx[visitado(miguitas_de_pan,*pos)];

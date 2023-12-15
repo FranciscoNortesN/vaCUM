@@ -31,18 +31,6 @@ enum direcciones {
 */
 
 //macros
-#define giro direccion++; if (direccion==8) direccion=0; atascado++;//gira a la derecha 45 grados y suma 1 al contador de atascado (si llega a 8 es que esta atascado)
-/*
-	se puede poner de esta forma:
-	if (*direccion==arriba) *direccion=esquina_arriba_derecha;
-	else if (*direccion==esquina_arriba_derecha) *direccion=derecha;
-	else if (*direccion==derecha) *direccion=esquina_abajo_derecha;
-	else if (*direccion==esquina_abajo_derecha) *direccion=abajo;
-	else if (*direccion==abajo) *direccion=esquina_abajo_izquierda;
-	else if (*direccion==esquina_abajo_izquierda) *direccion=izquierda;
-	else if (*direccion==izquierda) *direccion=esquina_arriba_izquierda;
-	else if (*direccion==esquina_arriba_izquierda) *direccion=arriba;
-*/
 #define printf_pos_map printf("x%d, y%d, %lld\n", pos.x, pos.y, (long long int)mapa_principal[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla del mapa principal
 //esta macro está, porque la vamos a usar mucho y es mas facil de escribir
 #define printf_pos_pan printf("x%d, y%d, %lld\n", pos.x, pos.y, (long long int)miguitas_de_pan[pos.x][pos.y])//imprime la posicion del robot y el estado de la casilla de las miguitas de pan
@@ -58,6 +46,17 @@ typedef struct {
     int x;
     int y;
 } Posicion;
+
+void giro (enum direcciones *direccion){//gira a la derecha 45 grados y suma 1 al contador de atascado (si llega a 8 es que esta atascado)
+	if (*direccion==arriba) *direccion=esquina_arriba_derecha;
+	else if (*direccion==esquina_arriba_derecha) *direccion=derecha;
+	else if (*direccion==derecha) *direccion=esquina_abajo_derecha;
+	else if (*direccion==esquina_abajo_derecha) *direccion=abajo;
+	else if (*direccion==abajo) *direccion=esquina_abajo_izquierda;
+	else if (*direccion==esquina_abajo_izquierda) *direccion=izquierda;
+	else if (*direccion==izquierda) *direccion=esquina_arriba_izquierda;
+	else if (*direccion==esquina_arriba_izquierda) *direccion=arriba;
+}
 
 void imprimirTablero(int tablero[filas][columnas]) {//imprime el tablero
     for (int i = 0; i < filas; i++) {
@@ -86,8 +85,8 @@ int main(int argc, char *argv[])
 	int mapa_principal [filas][columnas]={{p,p,p,p,p,p},
 	{p,0,0,0,0,p},
 	{p,0,0,3,0,p},
-	{p,0,p,0,0,p},
 	{p,0,0,0,0,p},
+	{p,0,p,0,0,p},
 	{p,p,p,p,p,p}};
 	//mapa que te dan
 
@@ -111,10 +110,11 @@ int main(int argc, char *argv[])
 	ll hx=pos.x,hy=pos.y;//nos guardamos la base de carga
 	enum direcciones direccion=0;//0 arriba, 1 esquina_arriba_derecha, 2 derecha, 3 esquina_abajo_derecha, 4 abajo, 5 esquina_abajo_izquierda, 6 izquierda, 7 esquina_arriba_izquierda
 	ll atascado=0;//si llega a 8 es que esta atascado
-	miguitas_de_pan[pos.x][pos.y]='1';//por aqui ya ha pasado
+	miguitas_de_pan[pos.x][pos.y]=1;//por aqui ya ha pasado
+	ll casillas_recorridas=0;//casillas recorridas
+	ll casillas_por_recorrer=(filas-2)*(columnas-2);//casillas por recorrer
 
-
-	while(atascado<=8/*&&bateria>bateria_max/2+1*/){
+	while(casillas_recorridas<=casillas_por_recorrer){
 		int tx[8]={0,1,1,1,0,-1,-1,-1},ty[8]={1,1,0,-1,-1,-1,0,1};
 		int dx=tx[direccion];
 		int dy=ty[direccion];
@@ -124,13 +124,19 @@ int main(int argc, char *argv[])
 			pos.y+=dy;
 			bateria--;//gasta bateria
 			atascado=0;//resetea el contador de atascado
+			printf_pos_map;
+			casillas_recorridas++;
 			limpiar_basura(mapa_principal,pos);
 		}
 		else{
 			if(mapa_principal[pos.x+dx][pos.y+dy]==p){//si hay pared
+				if(miguitas_de_pan[pos.x+dx][pos.y+dy]!=p)
+					casillas_por_recorrer--;
 				miguitas_de_pan[pos.x+dx][pos.y+dy]=p;//nos guardamos que hay una pared
 			}
-			giro;//si no puede avanzar gira
+			giro(&direccion);//gira a la derecha
+			atascado++;//suma 1 al contador de atascado
+			giro(&direccion);//gira a la derecha
 		}
 	}
 

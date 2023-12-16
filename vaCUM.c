@@ -103,6 +103,10 @@ void giro180 (){
 	direccion=(direccion+4)%8;//gira a la derecha 180 grados
 }
 
+void giro270 (){
+	direccion=(direccion+6)%8;//gira a la derecha 270 grados
+}
+
 void limpiar_basura(){
 	while(mapa_principal[pos.x][pos.y]>0){
 		mapa_principal[pos.x][pos.y]--;

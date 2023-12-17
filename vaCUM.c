@@ -107,16 +107,56 @@ void giro270 (){
 	direccion=(direccion+6)%8;//gira a la derecha 270 grados
 }
 
+void giro315 (){
+	direccion=(direccion+7)%8;//gira 45 grados a la izquierda
+}
+
 void limpiar_basura(){
 	while(mapa_principal[pos.x][pos.y]>0){
 		mapa_principal[pos.x][pos.y]--;
-		printf_pos_map;
+		printf_pos_map();
+	}
+}
+
+void movimiento(int dx, int dy){
+	miguitas_de_pan[pos.x+dx][pos.y+dy]=1;//por aqui ya ha pasado
+	pos.x+=dx;//se mueve
+	pos.y+=dy;
+	bateria--;//gasta bateria
+	atascado=0;//resetea el contador de atascado
+	printf_pos_map();
+	casillas_recorridas++;
+	limpiar_basura();
+}
+
+void comprobar_pared(int dx, int dy){
+	if(mapa_principal[pos.x+dx][pos.y+dy]==p){//si hay pared
+		if(miguitas_de_pan[pos.x+dx][pos.y+dy]!=p){//si de antes no se sabia que habia una pared
+			casillas_por_recorrer--;
+			printf("x%d, y%d, %lld\n", pos.x+dx, pos.y+dy, (long long int)mapa_principal[pos.x+dx][pos.y+dy]);
+		}
+		miguitas_de_pan[pos.x+dx][pos.y+dy]=p;//nos guardamos que hay una pared
 	}
 }
 
 // Función para verificar si una posición está dentro de los límites del tablero
 bool dentroDeLimites(int x, int y) {
     return (x >= 0 && x < filas && y >= 0 && y < columnas);
+}
+
+void movimiento_normal(int dx,int dy){
+	if (mapa_principal[pos.x+dx][pos.y+dy]!=p && miguitas_de_pan[pos.x+dx][pos.y+dy]!=1){//si no hay pared, si tiene bateria y si no ha pasado por ahi
+		movimiento(dx,dy);
+	}
+	else{
+		comprobar_pared(dx,dy);
+		giro90();//gira 90 grados a la derecha
+		atascado++;//suma 1 al contador de atascado
+	}
+}
+
+void desatasco(){
+
 }
 
 int main(int argc, char *argv[])
@@ -128,24 +168,11 @@ int main(int argc, char *argv[])
 	while(casillas_recorridas<=casillas_por_recorrer){
 		int dx=tx[direccion];
 		int dy=ty[direccion];
-		if (mapa_principal[pos.x+dx][pos.y+dy]!=p && miguitas_de_pan[pos.x+dx][pos.y+dy]!=1){//si no hay pared, si tiene bateria y si no ha pasado por ahi
-			miguitas_de_pan[pos.x+dx][pos.y+dy]=1;//por aqui ya ha pasado
-			pos.x+=dx;//se mueve
-			pos.y+=dy;
-			bateria--;//gasta bateria
-			atascado=0;//resetea el contador de atascado
-			printf_pos_map;
-			casillas_recorridas++;
-			limpiar_basura();
+		if(atascado<=8){//como el robot se movería cuando va por nuevas zonas
+			movimiento_normal(dx,dy);
 		}
 		else{
-			if(mapa_principal[pos.x+dx][pos.y+dy]==p){//si hay pared
-				//if(miguitas_de_pan[pos.x+dx][pos.y+dy]!=p)
-					casillas_por_recorrer--;
-				miguitas_de_pan[pos.x+dx][pos.y+dy]=p;//nos guardamos que hay una pared
-			}
-			giro90();//gira 90 grados a la derecha
-			atascado++;//suma 1 al contador de atascado
+			desatasco();
 		}
 	}
 

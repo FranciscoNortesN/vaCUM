@@ -1,3 +1,2 @@
 # vaCUM
-roomba para IPR
-hay que reparar el código de desatasco
+Roomba para IPR, vaCUM y vaCUM (experimentación personal) ya no son muy útiles

@@ -53,7 +53,7 @@ ll atascado=0;//si llega a 8 es que esta atascado
 ll mapa_principal [filas][columnas]={{p,p,p,p,p,p},
 {p,0,0,0,0,p},
 {p,0,0,3,0,p},
-{p,0,0,0,0,p},
+{p,0,p,0,0,p},
 {p,0,p,0,0,p},
 {p,p,p,p,p,p}};
 //mapa que te dan
@@ -103,11 +103,11 @@ void giro180 (){
 	direccion=(direccion+4)%8;//gira a la derecha 180 grados
 }
 
-void giro270 (){
+void giromenos90 (){
 	direccion=(direccion+6)%8;//gira a la derecha 270 grados
 }
 
-void giro315 (){
+void giromenos45 (){
 	direccion=(direccion+7)%8;//gira 45 grados a la izquierda
 }
 
@@ -155,8 +155,39 @@ void movimiento_normal(int dx,int dy){
 	}
 }
 
-void desatasco(){
+ll buscar(){//busca una casilla por la que no haya pasado
+	for(int i=0;i<8;i++){
+		int dx=tx[i];
+		int dy=ty[i];
+		if(miguitas_de_pan[pos.x+dx][pos.y+dy]==0){
+			return i;
+		}
+	}
+	return -1;
+}
 
+void desatasco(){
+	giro180();//gira 180 grados
+	while(miguitas_de_pan[pos.x][pos.y]!=0&&casillas_recorridas<casillas_por_recorrer){//mientras no haya pasado por ahi
+		int dx=tx[buscar()];
+		int dy=ty[buscar()];
+		comprobar_pared(dx,dy);
+		if(buscar()!=-1){
+			movimiento(dx,dy);
+			break;
+		}
+		else{
+			dx=tx[direccion];
+			dy=ty[direccion];
+			if(mapa_principal[pos.x+dx][pos.y+dy]!=p&&miguitas_de_pan[pos.x+dx][pos.y+dy]!=0){
+				movimiento(dx,dy);
+			}
+			else{
+				comprobar_pared(dx,dy);
+				giromenos90();//gira 90 grados a la izquierda
+			}
+		}
+	}
 }
 
 int main(int argc, char *argv[])
@@ -173,6 +204,7 @@ int main(int argc, char *argv[])
 		}
 		else{
 			desatasco();
+			casillas_recorridas++;
 		}
 	}
 

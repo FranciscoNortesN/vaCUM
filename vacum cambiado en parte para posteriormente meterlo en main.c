@@ -10,6 +10,7 @@
 //constantes
 #define filas 30
 #define columnas 50
+#define dimension 3
 #define condicion 1 //acabar el mapa
 #define bateria_max 1000000000 //para que sobre bateria
 #define p -1 //pared
@@ -53,46 +54,8 @@ ll hx=posicion_inicial_x, hy=posicion_inicial_y; // nos guardamos la base de car
 ll atascado=0;//si llega a 8 es que esta atascado
 ll miguitas=1;
 
-ll mapa_principal [filas][columnas]={{p,p,p,p,p,p},
-{p,0,0,0,0,p},
-{p,0,0,3,0,p},
-{p,0,p,0,0,p},
-{p,0,p,0,0,p},
-{p,p,p,p,p,p}};
-//mapa que te dan
-
-ll miguitas_de_pan [filas][columnas]={{p,p,p,p,p,p},
-{p,0,0,0,0,p},
-{p,0,0,0,0,p},
-{p,0,0,0,0,p},
-{p,0,0,0,0,p},
-{p,p,p,p,p,p}};
+ll miguitas_de_pan [filas][columnas][dimension];
 //mapa que vas a usar
-
-void coger_mapa_principal (){
-	for(int i=0;i<filas;i++){
-		for(int j=0;j<columnas;j++){
-			scanf("%lld", &mapa_principal[i][j]);
-		}
-	}
-}
-
-void imprimirTablero(ll tablero[filas][columnas]) {//imprime el tablero
-    for (int i = 0; i < filas; i++) {
-        for (int j = 0; j < columnas; j++) {
-            printf("%2lld ", tablero[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void printf_pos_map (){
-	printf("x%d, y%d, %lld\n", pos.x, pos.y, (long long int)mapa_principal[pos.x][pos.y]);
-}
-
-void printf_pos_mig (){
-	printf("x%d, y%d, %lld\n", pos.x, pos.y, (long long int)miguitas_de_pan[pos.x][pos.y]);
-}
 
 void giro45 (){
 	direccion=(direccion+1)%8;//gira a la derecha 45 grados
@@ -107,12 +70,27 @@ void giro90 (){
 	//porque ha girado 45 grados 2 veces
 }
 
+void giro135 (){
+	direccion=(direccion+3)%8;//gira a la derecha 135 grados
+	rmb_turn(3*M_PI/4);
+	atascado+=3;//suma 3 al contador de atascado
+	//porque ha girado 45 grados 3 veces
+}
+
 void giro180 (){
 	direccion=(direccion+4)%8;//gira a la derecha 180 grados
 	rmb_turn(M_PI);
 	atascado+=4;//suma 4 al contador de atascado
 	//porque ha girado 90 grados 2 veces
 }
+
+void giromenos135 (){
+	direccion=(direccion+5)%8;//gira a la derecha 225 grados
+	rmb_turn(5*M_PI/4);
+	atascado+=5;//suma 5 al contador de atascado
+	//porque ha girado 45 grados 5 veces
+}
+
 
 void giromenos90 (){
 	direccion=(direccion+6)%8;//gira a la derecha 270 grados
@@ -161,14 +139,14 @@ bool dentroDeLimites(int x, int y) {
 }
 
 void movimiento_normal(int dx,int dy){
-	if (rmb_bumper()==0 && miguitas_de_pan[pos.x+dx][pos.y+dy]==0){//si no hay pared, si tiene bateria y si no ha pasado por ahi
+	if (rmb_bumper()==0 && miguitas_de_pan[pos.x+dx][pos.y+dy][0]==0){//si no hay pared, si tiene bateria y si no ha pasado por ahi
 		rmb_forward();//se mueve
 		limpiar_basura();
 		int dx=tx[direccion];
 		int dy=ty[direccion];
 		pos.x+=dx;
 		pos.y+=dy;
-		miguitas_de_pan[pos.x][pos.y]=miguitas++;//por aqui ya ha pasado
+		miguitas_de_pan[pos.x][pos.y][0]=miguitas++;//por aqui ya ha pasado
 		atascado=0;//resetea el contador de atascado
 	}
 	else{
@@ -197,7 +175,7 @@ int main(int argc, char *argv[])
 {
 	srand(time(NULL));
 
-	miguitas_de_pan[pos.x][pos.y]=1;//por aqui ya ha pasado
+	miguitas_de_pan[pos.x][pos.y][0]=1;//por aqui ya ha pasado
 	
 	while(casillas_recorridas<=casillas_por_recorrer){
 		int dx=tx[direccion];
@@ -211,7 +189,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	imprimirTablero(mapa_principal);
 	imprimirTablero(miguitas_de_pan);
 
 

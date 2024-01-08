@@ -206,7 +206,7 @@ void on_start(){
 	empareda2();
 	sensor_t rob_state = rmb_state();
 	int d1 = rob_state.head/(M_PI/4);
-	int d=d1+8;
+	int d=d1+8+2;
 	direccion=(d)%8;
     pos.x=rob_state.x;
     pos.y=rob_state.y;
@@ -243,8 +243,17 @@ void cyclic_behav(){
 				pos.x+=dx;//se guarda a donde se ha movido segun las x
 				pos.y+=dy;//se guarda a donde se ha movido segun las y
 				limpiar_basura();
-				miguitas_de_pan[pos.x][pos.y][0]=miguitas++;//indica que por aqui ya ha pasado y en que momento
-				miguitas_de_pan[pos.x][pos.y][1]++;//se guarda el número de veces que se ha pasado por ahi
+				if (rmb_bumper()==1){
+					for(int i=0; i<dimension; i++){
+						miguitas_de_pan[pos.x][pos.y][i]=p;//se guarda que hay una pared en la casilla donde se ha pasado
+					}
+					pos.x-=dx;//se guarda a donde se ha movido segun las x
+					pos.y-=dy;//se guarda a donde se ha movido segun las y
+				}
+				if(rmb_bumper()==0){
+					miguitas_de_pan[pos.x][pos.y][0]=miguitas++;//indica que por aqui ya ha pasado y en que momento
+					miguitas_de_pan[pos.x][pos.y][1]++;//se guarda el número de veces que se ha pasado por ahi
+				}
 				atascado=0;//resetea el contador de atascado porque se ha podido mover
 			}
 			else{

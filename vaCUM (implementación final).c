@@ -35,9 +35,10 @@ typedef char c;
 //se crean variables globales para que sean accesibles en todo el codigo y no tener que usar punteros en todas partes
 direcciones direccion;//direccion del robot
 ll atascado=0;//si llega a 8 es que esta atascado
+ll contador_paredes=0;
 Posicion pos;
 Posicion base_de_carga;
-ll miguitas_de_pan[filas][columnas][dimension]={0};
+ll miguitas_de_pan[columnas][filas][dimension]={0};
 /*
 dimensión=0: mapa donde con cada paso que se realiza en una casilla nueva, se deja un número mayor
 dimensión=1: mapa donde con cada paso que se realiza en una casilla nueva, se deja un 1, con cada casilla ya visitada, se deja un 2 si se ha visitado 2 veces, un 3 si 3...
@@ -125,8 +126,7 @@ void girar(int optimo){
 }
 
 void home_coming(){//vuelta a la base a por batería
-  
-	int menor=-1;
+	int menor;
 	bool primera_vez=true;
 	for (int j = 0; j < 8; j++){
 		int i=(direccion+j)%8;
@@ -134,28 +134,70 @@ void home_coming(){//vuelta a la base a por batería
 			menor=i;
 			primera_vez=false;
 		}
-		else if (miguitas_de_pan[pos.x + tx[i]][pos.y + ty[i]][0] < miguitas_de_pan[pos.x + tx[menor]][pos.y + ty[menor]][0] && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][0]!=0){
-			menor = i;
-		}
+		else if(primera_vez==false){
+						if (miguitas_de_pan[pos.x + tx[i]][pos.y + ty[i]][0] < miguitas_de_pan[pos.x + tx[menor]][pos.y + ty[menor]][0] && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][0]!=0 && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][0]!=p){
+								menor = i;
+						}
+				}
 	}
 	miguitas_de_pan[pos.x][pos.y][2] = rastro_home_coming++;
-	girar(menor);
+	
+  girar((menor-direccion+8)%8);
 	avance();
 }
 
-void far_from_home(){//regresa al sitio donde había entrado en reserva
-	bool encontrado= false;
-	int i=0, menor;
-	while(encontrado==false){
-		if(miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2]!=0 && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][0]!=p){
-			menor=miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2];
-			encontrado=true;
-						break;//así no se incrementa cuando ya has encontrado la direccion óptima
-		}
-		i++;
-	}    
-	girar(i);//se orienta hacia la casilla menor 
+/*bool encontrado= false;
+int i=0;
+while(encontrado==false){
+  if(miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2]!=0 && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][0]!=p){
+    encontrado=true;
+    break;//así no se incrementa cuando ya has encontrado la direccion óptima
+  }
+  i++;
 }
+*/
+
+/*void far_from_home(){//regresa al sitio donde había entrado en reserva
+	
+  int menor;
+  bool primera_vez=true;
+  for (int j = 0; j < 8; j++){
+    int i=(direccion+j)%8;
+    if(miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2]!=p && primera_vez==true && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2]!=0){
+      menor=i;
+      primera_vez=false;
+    }
+    else if(primera_vez==false){
+            if (miguitas_de_pan[pos.x + tx[i]][pos.y + ty[i]][2] < miguitas_de_pan[pos.x + tx[menor]][pos.y + ty[menor]][2] && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2]!=0 && miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][2]!=p){
+                menor = i;
+            }
+        }
+  }
+	girar((menor-direccion+8)%8);//se orienta hacia la casilla menor 
+}
+*/
+void far_from_home() {
+    int menor = 0;
+    bool primera_vez = true;
+
+    for (int j = 0; j < 8; j++) {
+        int i = (direccion + j) % 8;
+
+        if (miguitas_de_pan[pos.x + tx[i]][pos.y + ty[i]][2] != p && miguitas_de_pan[pos.x + tx[i]][pos.y + ty[i]][2] != 0) {
+            if (primera_vez) {
+                menor = i;
+                primera_vez = false;
+            } else {
+                if (miguitas_de_pan[pos.x + tx[i]][pos.y + ty[i]][2] < miguitas_de_pan[pos.x + tx[menor]][pos.y + ty[menor]][2]) {
+                    menor = i;
+                }
+            }
+        }
+    }
+
+    girar((menor - direccion + 8) % 8); // se orienta hacia la casilla menor
+}
+
 
 void desatasco(){
 	bool primera=true;
@@ -172,45 +214,45 @@ void desatasco(){
 			d=i;
 		}
 	}
-	girar(d);//se orienta hacia la casilla menor
+	girar((d-direccion+8)%8);//se orienta hacia la casilla menor
 }
 
-/*void explorar(){
+void explorar(){
 	if(miguitas_de_pan[pos.x+tx[(direccion+2)%8]][pos.y+ty[(direccion+2)%8]][0]==0){//gira a la derecha, si no, a la izquierda
 		giro90();
-		atascado+=2;
+		//atascado+=2;
 	}
 	else{
 		giromenos90();
-		atascado+=6;
+		//atascado+=6;
 	}  
-}*/
+}
 
 void empareda2(){//rellena los tres mapas con las paredes
 	for(int i=0; i<filas; i++){
 		for(int j=0; j<dimension; j++){
-			miguitas_de_pan[i][0][j]=p;
-			miguitas_de_pan[i][49][j]=p;
+			miguitas_de_pan[0][i][j]=p;
+			miguitas_de_pan[49][i][j]=p;
 		}
 	}
 	for(int i=0; i<columnas; i++){
 		for(int j=0; j<dimension; j++){
-			miguitas_de_pan[0][i][j]=p;
-			miguitas_de_pan[29][i][j]=p;
+			miguitas_de_pan[i][0][j]=p;
+			miguitas_de_pan[i][29][j]=p;
 		}
 	}
 }
 
 void on_start(){
-	rmb_awake(&base_de_carga.x, &base_de_carga.y);
+	rmb_awake(&base_de_carga.x, &base_de_carga.y); 
 	empareda2();
 	sensor_t rob_state = rmb_state();
 	int d1 = rob_state.head/(M_PI/4);
 	int d=d1+8+2;
 	direccion=(d)%8;
-    pos.x=rob_state.x;
-    pos.y=rob_state.y;
-    miguitas_de_pan[pos.x][pos.y][0]=miguitas++;//indica que por aqui ya ha pasado y en que momento
+				pos.x=rob_state.x;
+				pos.y=rob_state.y;
+				miguitas_de_pan[pos.x][pos.y][0]=miguitas++;//indica que por aqui ya ha pasado y en que momento
 	miguitas_de_pan[pos.x][pos.y][1]++;//se guarda el número de veces que se ha pasado por ahi
 	ultima_direccion=direccion;
 	giro90();
@@ -278,6 +320,8 @@ void cyclic_behav(){
 	else if(rmb_battery()<bateria_max/2 && !rmb_at_base()){
 		//aquí habría que guardarse la direccion con la que se ha quedado
 		home_coming();
+    limpiar_basura();
+    miguitas_de_pan[base_de_carga.x][base_de_carga.y][0]=1;//forzar que la base sea un 1 (se cambia a veces por la cara)
 		base=true;
 	}
 	else if(rmb_at_base() && rmb_battery()<bateria_max-10){
@@ -289,10 +333,16 @@ void cyclic_behav(){
 		if(miguitas_de_pan[pos.x][pos.y][2]!=1){//si no ha llegado todavía
 			far_from_home();//sigue el rastro
 			rmb_forward();
+      for (int j = 0; j < 8; j++){
+        int i=(direccion+j)%8;
+        if(miguitas_de_pan[pos.x+tx[i]][pos.y+ty[i]][0]==p)
+          contador_paredes++;
+      }
+      if(contador_paredes>4)
+        explorar();
 		}
-				else{
+		else
 			base=false;//esto permite que se inicie el algoritmo de busqueda principal
-		}
 	}
 	if (base==false){
 		ultima_direccion=direccion;
@@ -320,7 +370,7 @@ void on_stop(){
 
 
 int main(){
-	configure(on_start, cyclic_behav, on_stop, 500);
+	configure(on_start, cyclic_behav, on_stop, 2500);
 	run();
 	return 0;
 }
